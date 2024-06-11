@@ -98,9 +98,9 @@ import "../../styles/productos/item.css";
                     const productImage = document.createElement("img");
                     productImage.alt = product.nombre;
                     productImage.src =
-                        product.imagen || "/src/assets/images/notFound.png";
+                        product.imagen || "/src/assets/notFound.png";
                     productImage.onerror = () => {
-                        productImage.src = "/src/assets/images/notFound.png";
+                        productImage.src = "/src/assets/notFound.png";
                     };
 
                     productDetailsContainer.appendChild(productImage);

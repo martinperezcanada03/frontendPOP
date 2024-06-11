@@ -1,5 +1,5 @@
 ---
-import "/src/styles/productos/card-product.css";
+import "/src/styles/card-product.css";
 import Footer from "./Footer.astro";
 import Navbar from "./navbar.astro";
 ---
@@ -200,12 +200,12 @@ import Navbar from "./navbar.astro";
     const img = document.createElement("img");
     img.classList.add("card-img-top");
     img.alt = product.nombre;
-    img.src = product.imagen || "src/assets/images/notFound.png";
+    img.src = product.imagen || "src/assets/notFound.png";
     img.style.width = "100%";
     img.style.height = "219px";
     img.style.objectFit = "cover";
     img.onerror = () => {
-        img.src = "src/assets/images/notFound.png";
+        img.src = "src/assets/notFound.png";
     };
 
     const cardBody = document.createElement("div");

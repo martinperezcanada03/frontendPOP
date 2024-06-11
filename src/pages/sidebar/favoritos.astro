@@ -135,14 +135,14 @@ import "../../styles/sidebar/productos.css";
                 const img = document.createElement("img");
                 img.classList.add("card-img-top");
                 img.alt = product.nombre;
-                img.src = product.imagen || "/src/assets/images/notFound.png";
+                img.src = product.imagen || "/src/assets/notFound.png";
                 img.style.width = "100%";
                 img.style.height = "219px";
                 img.style.objectFit = "cover";
 
                 // Manejar el error si la imagen no se puede cargar
                 img.onerror = function () {
-                    img.src = "/src/assets/images/notFound.png"; // Cambiar a la imagen por defecto
+                    img.src = "/src/assets/notFound.png"; // Cambiar a la imagen por defecto
                 };
 
                 const cardBody = document.createElement("div");
