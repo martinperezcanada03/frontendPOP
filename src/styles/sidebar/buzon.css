@@ -1,0 +1,64 @@
+.container {
+    margin-left: 15%;
+}
+
+.container-navbar {
+    margin-bottom: 10%;
+
+}
+
+body {
+    padding-left: 20%;
+    padding-right: 15%;
+}
+
+#conversationsContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.no-conversations-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    width: 100%;
+}
+
+.no-conversations-message {
+    font-size: 24px;
+    color: #888;
+}
+
+.card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.card-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.card-link .card {
+    cursor: pointer;
+}
+
+.conversation-card {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.card {
+    flex: 1;
+}
+
+.cancel-reservation-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}

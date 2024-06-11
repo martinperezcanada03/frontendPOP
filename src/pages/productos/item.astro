@@ -1,0 +1,497 @@
+---
+import Footer from "../../components/Footer.astro";
+import Navbar from "../../components/navbar.astro";
+import Sidebar from "../../components/sidebar.astro";
+
+import "../../styles/productos/item.css";
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link
+            rel="stylesheet"
+            href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+        />
+
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+    </head>
+    <body>
+        <div class="container-navbar">
+            <Navbar />
+        </div>
+        <div class="container mx-auto">
+            <h2 id="soldMessage" style="display: none;">VENDIDO</h2>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <Sidebar />
+                </div>
+                <div>
+                    <div
+                        class="product-details-container"
+                        id="product-details-container"
+                    >
+                    </div>
+                </div>
+            </div>
+            <footer class="fab-container">
+                <button class="fab-button" id="buzonButton"
+                    ><i class="fas fa-envelope"></i></button
+                >
+                <button class="fab-button" id="editButton"
+                    ><i class="fas fa-edit"></i></button
+                >
+            </footer>
+        </div>
+
+        <script>
+            import type { Product } from "../../interfaces/product";
+
+            async function createProductDetails(
+                product: Product,
+                userFavorites: string[],
+            ) {
+                const productDetailsContainer = document.getElementById(
+                    "product-details-container",
+                );
+
+                if (productDetailsContainer) {
+                    const heartButton = document.createElement("button");
+                    heartButton.classList.add("heart-button");
+
+                    if (userFavorites.includes(product._id)) {
+                        heartButton.innerHTML = '<i class="fas fa-heart"></i>';
+                        heartButton.classList.add("filled");
+                    } else {
+                        heartButton.innerHTML = '<i class="far fa-heart"></i>';
+                    }
+
+                    heartButton.addEventListener("click", async function () {
+                        heartButton.classList.toggle("filled");
+                        if (heartButton.classList.contains("filled")) {
+                            heartButton.innerHTML =
+                                '<i class="fas fa-heart"></i>';
+                            await updateFavorites(product._id, true);
+                        } else {
+                            heartButton.innerHTML =
+                                '<i class="far fa-heart"></i>';
+                            await updateFavorites(product._id, false);
+                        }
+                    });
+
+                    const productName = document.createElement("h2");
+                    productName.textContent = product.nombre;
+                    productName.appendChild(heartButton);
+
+                    productDetailsContainer.appendChild(productName);
+                    productDetailsContainer.dataset.userId = product.userId;
+                    productDetailsContainer.dataset.productId = product._id;
+
+                    const productImage = document.createElement("img");
+                    productImage.alt = product.nombre;
+                    productImage.src =
+                        product.imagen || "/src/assets/images/notFound.png";
+                    productImage.onerror = () => {
+                        productImage.src = "/src/assets/images/notFound.png";
+                    };
+
+                    productDetailsContainer.appendChild(productImage);
+
+                    const productDescription = document.createElement("p");
+                    productDescription.textContent = product.descripcion;
+
+                    const ownerPriceContainer = document.createElement("div");
+                    ownerPriceContainer.classList.add("owner-price-container");
+
+                    const productPrice = document.createElement("p");
+                    productPrice.classList.add("font-weight-bold");
+                    productPrice.textContent = `${product.precio}€`;
+
+                    ownerPriceContainer.appendChild(productPrice);
+
+                    try {
+                        const response = await fetch(
+                            `https://backendpop-ku78.onrender.com/users/${product.userId}`,
+                        );
+
+                        if (response.ok) {
+                            const userData = await response.json();
+                            const productOwner = document.createElement("a");
+                            productOwner.classList.add("font-weight-bold");
+                            productOwner.href = `/productos/profile?userId=${product.userId}`;
+
+                            productOwner.textContent = userData.name;
+                            productOwner.style.marginRight = "110px";
+                            ownerPriceContainer.appendChild(productOwner);
+                        } else {
+                            throw new Error(
+                                "Error al obtener los detalles del usuario",
+                            );
+                        }
+                    } catch (error) {
+                        console.error(
+                            "Hubo un error al obtener los detalles del usuario:",
+                            error,
+                        );
+                    }
+
+                    productDetailsContainer.appendChild(productDescription);
+                    productDetailsContainer.appendChild(ownerPriceContainer);
+
+                    const buzonButton = document.getElementById("buzonButton");
+                    if (
+                        buzonButton &&
+                        product.userId === localStorage.getItem("userId")
+                    ) {
+                        buzonButton.style.display = "none";
+                    }
+                }
+            }
+
+            function fetchProductDetails(
+                productId: string,
+                userFavorites: string[],
+            ) {
+                fetch(`https://backendpop-ku78.onrender.com/products/${productId}`)
+                    .then((response) => {
+                        if (response.ok) {
+                            return response.json();
+                        } else {
+                            throw new Error(
+                                "Error al obtener los detalles del producto",
+                            );
+                        }
+                    })
+                    .then((product) => {
+                        createProductDetails(product, userFavorites);
+                    })
+                    .catch((error) => {
+                        console.error(
+                            "Hubo un error al obtener los detalles del producto:",
+                            error,
+                        );
+                    });
+            }
+
+            interface Conversation {
+                productId: string;
+                userId: string;
+                status: string;
+            }
+            async function sendConversationRequest(
+                recipientId: string,
+                productId: string,
+            ) {
+                try {
+                    console.log(
+                        "Enviando solicitud de conversación para el producto con ID:",
+                        productId,
+                    );
+
+                    let senderId = localStorage.getItem("userId") || "";
+                    if (!senderId) {
+                        console.error(
+                            "El ID del usuario no está disponible en el almacenamiento local",
+                        );
+                        return;
+                    }
+
+                    const productUpdateResponse = await fetch(
+                        `https://backendpop-ku78.onrender.com/products/${productId}`,
+                        {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ status: "proceso" }),
+                        },
+                    );
+
+                    if (!productUpdateResponse.ok) {
+                        throw new Error(
+                            "Error al actualizar el estado del producto",
+                        );
+                    }
+
+                    console.log("Estado del producto actualizado a 'proceso'");
+
+                    const senderResponse = await fetch(
+                        `https://backendpop-ku78.onrender.com/users/${senderId}`,
+                    );
+                    const senderData = await senderResponse.json();
+                    const senderConversations: Conversation[] =
+                        senderData.conversations || [];
+
+                    if (
+                        !senderConversations.some(
+                            (conversation) =>
+                                conversation.productId === productId,
+                        )
+                    ) {
+                        senderConversations.push({
+                            productId: productId,
+                            userId: senderId,
+                            status: "proceso", 
+                        });
+
+                        const senderUpdateResponse = await fetch(
+                            `https://backendpop-ku78.onrender.com/users/${senderId}`,
+                            {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    conversations: senderConversations,
+                                }),
+                            },
+                        );
+
+                        if (!senderUpdateResponse.ok) {
+                            throw new Error(
+                                "Error al actualizar la conversación del usuario que envía la solicitud",
+                            );
+                        }
+
+                        console.log(
+                            "Conversación actualizada correctamente para el usuario que envía la solicitud",
+                        );
+                    } else {
+                        console.log(
+                            "La conversación ya existe para el usuario que envía la solicitud, no se añadirá de nuevo",
+                        );
+                    }
+
+                    const recipientResponse = await fetch(
+                        `https://backendpop-ku78.onrender.com/users/${recipientId}`,
+                    );
+                    const recipientData = await recipientResponse.json();
+                    const recipientConversations: Conversation[] =
+                        recipientData.conversations || [];
+
+                    if (
+                        !recipientConversations.some(
+                            (conversation) =>
+                                conversation.productId === productId,
+                        )
+                    ) {
+                        recipientConversations.push({
+                            productId: productId,
+                            userId: senderId,
+                            status: "proceso", // Estado inicial de la conversación
+                        });
+
+                        const recipientUpdateResponse = await fetch(
+                            `https://backendpop-ku78.onrender.com/users/${recipientId}`,
+                            {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    conversations: recipientConversations,
+                                }),
+                            },
+                        );
+
+                        if (!recipientUpdateResponse.ok) {
+                            throw new Error(
+                                "Error al actualizar la conversación del propietario del producto",
+                            );
+                        }
+
+                        console.log(
+                            "Conversación actualizada correctamente para el propietario del producto",
+                        );
+                    } else {
+                        console.log(
+                            "La conversación ya existe para el propietario del producto, no se añadirá de nuevo",
+                        );
+                    }
+                } catch (error) {
+                    console.error(
+                        "Hubo un error al enviar la solicitud de conversación:",
+                        error,
+                    );
+                }
+            }
+            async function updateFavorites(productId: string, add: boolean) {
+                try {
+                    const userId = localStorage.getItem("userId");
+                    const response = await fetch(
+                        `https://backendpop-ku78.onrender.com/users/${userId}`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        },
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(
+                            "Error al obtener los favoritos del usuario",
+                        );
+                    }
+
+                    const userData = await response.json();
+                    let favorites = userData.favorites || [];
+
+                    if (add) {
+                        if (!favorites.includes(productId)) {
+                            favorites.push(productId);
+                        }
+                    } else {
+                        favorites = favorites.filter(
+                            (id: string) => id !== productId,
+                        );
+                    }
+
+                    const putResponse = await fetch(
+                        `https://backendpop-ku78.onrender.com/users/${userId}`,
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ favorites: favorites }),
+                        },
+                    );
+
+                    if (!putResponse.ok) {
+                        throw new Error(
+                            "Error al actualizar los favoritos del usuario",
+                        );
+                    }
+
+                    console.log(
+                        "Favoritos del usuario actualizados correctamente",
+                    );
+                } catch (error) {
+                    console.error(
+                        "Hubo un error al actualizar los favoritos:",
+                        error,
+                    );
+                }
+            }
+
+            async function fetchUserFavorites() {
+                const userId = localStorage.getItem("userId");
+                try {
+                    const response = await fetch(
+                        `https://backendpop-ku78.onrender.com/users/${userId}`,
+                        {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                        },
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(
+                            "Error al obtener los favoritos del usuario",
+                        );
+                    }
+
+                    const userData = await response.json();
+                    return userData.favorites || [];
+                } catch (error) {
+                    console.error(
+                        "Hubo un error al obtener los favoritos del usuario:",
+                        error,
+                    );
+                    return [];
+                }
+            }
+
+            function redirectToChat(
+                productOwnerId: string,
+                productId: string,
+                userId: string,
+                conversationUserId: string,
+            ) {
+                const chatType =
+                    userId === productOwnerId ? "owner" : "participant";
+                const recipientId =
+                    chatType === "owner" ? conversationUserId : productOwnerId;
+                const href = `/chat?senderId=${userId}&recipientId=${recipientId}&productId=${productId}&chatType=${chatType}&usuarioIniciadorId=${conversationUserId}`;
+                window.location.href = href;
+            }
+
+            document.addEventListener("DOMContentLoaded", async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get("id");
+
+    const userFavorites = await fetchUserFavorites();
+
+    if (productId) {
+        fetchProductDetails(productId, userFavorites);
+    } else {
+        console.error("No se proporcionó un ID de producto en la URL");
+    }
+
+    const buzonButton = document.getElementById("buzonButton");
+    const soldMessage = document.getElementById("soldMessage");
+
+    const currentUser = localStorage.getItem("userName");
+    const currentUserId = localStorage.getItem("userId"); // Obtener el ID del usuario actual
+
+    if (!currentUser && buzonButton) {
+        buzonButton.style.display = "none";
+    }
+
+    if (buzonButton && soldMessage) {
+        const productDetailsResponse = await fetch(`https://backendpop-ku78.onrender.com/products/${productId}`);
+        const productDetails = await productDetailsResponse.json();
+
+        if (productDetails.status === "finalizada") {
+            buzonButton.style.display = "none";
+            soldMessage.style.display = "block";
+            soldMessage.style.marginLeft = "500px";
+            soldMessage.style.color = "red";
+
+            const editButton = document.getElementById("editButton");
+            if (editButton) {
+                editButton.style.display = "none";
+            }
+        } else {
+            buzonButton.addEventListener("click", async () => {
+                const productDetailsContainer = document.getElementById("product-details-container");
+                if (productDetailsContainer && productDetailsContainer.dataset.userId && productDetailsContainer.dataset.productId) {
+                    const recipientId = productDetailsContainer.dataset.userId;
+                    const productId = productDetailsContainer.dataset.productId;
+
+                    await sendConversationRequest(recipientId, productId);
+
+                    const senderId = localStorage.getItem("userId") || "";
+                    redirectToChat(productDetailsContainer.dataset.userId, productId, senderId, senderId);
+                } else {
+                    console.error("No se pudo obtener el ID de usuario o el ID de producto");
+                }
+            });
+
+            const editButton = document.getElementById("editButton");
+
+            if (currentUser === "admin") {
+                editButton!.style.display = "block";
+                editButton!.addEventListener("click", () => {
+                    window.location.href = `../productos/editarProducto?id=${productId}`;
+                });
+            } else if (editButton && currentUserId === productDetails.userId) {
+                editButton.style.display = "block";
+                editButton.addEventListener("click", () => {
+                    window.location.href = `../productos/editarProducto?id=${productId}`;
+                });
+            } else {
+                editButton!.style.display = "none";
+            }
+        }
+    }
+});
+
+        </script>
+    </body>
+</html>

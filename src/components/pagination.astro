@@ -1,0 +1,26 @@
+<div id="pagination-container" class="pagination-container">
+  </div>
+  
+  <script>
+    function createPagination(totalPages: number, currentPage: number) {
+      const paginationContainer = document.getElementById('pagination-container');
+      paginationContainer!.innerHTML = ''; 
+  
+      for (let i = 1; i <= totalPages; i++) {
+        const pageButton = document.createElement('button');
+        pageButton.classList.add('page-button');
+        pageButton.textContent = i.toString();
+        pageButton.disabled = i === currentPage;
+        pageButton.addEventListener('click', () => {
+          const event = new CustomEvent('pageChange', { detail: i });
+          document.dispatchEvent(event);
+        });
+        paginationContainer!.appendChild(pageButton);
+      }
+    }
+  
+    const totalPages = 10; 
+    const currentPage = 1; 
+    createPagination(totalPages, currentPage);
+  </script>
+  

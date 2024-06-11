@@ -1,0 +1,196 @@
+---
+import Footer from "../../components/Footer.astro";
+import Navbar from "../../components/navbar.astro";
+import Sidebar from "../../components/sidebar.astro";
+
+import "../../styles/sidebar/buzon.css";
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Usuarios</title>
+        <link
+            rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+        />
+        <link rel="stylesheet" href="../../styles/sidebar/buzon.css" />
+    </head>
+    <body>
+        <header>
+            <div class="container-navbar">
+                <Navbar />
+            </div>
+        </header>
+        <div class="container">
+            <h1>Usuarios</h1>
+            <div class="row" id="usersContainer"></div>
+        </div>
+        <footer>
+            <Sidebar />
+        </footer>
+
+        <script>
+            import type { User } from "../../interfaces/user";
+            function showAlert(
+                type: string,
+                message: string,
+                confirmCallback: () => void,
+                cancelCallback: () => void,
+            ) {
+                const alertDiv = document.createElement("div");
+                alertDiv.classList.add(
+                    "alert",
+                    `alert-${type}`,
+                    "mt-3",
+                    "position-fixed",
+                    "start-50",
+                    "translate-middle-x",
+                );
+                alertDiv.style.top = "50%";
+                alertDiv.style.left = "50%";
+                alertDiv.style.transform = "translate(-50%, -50%)";
+                alertDiv.style.zIndex = "1050";
+                alertDiv.innerHTML = `
+                    <p>${message}</p>
+                   
+                `;
+                document.body.prepend(alertDiv);
+
+                document
+                    .getElementById("confirmButton")
+                    ?.addEventListener("click", () => {
+                        confirmCallback();
+                        alertDiv.remove();
+                    });
+
+                document
+                    .getElementById("cancelButton")
+                    ?.addEventListener("click", () => {
+                        cancelCallback();
+                        alertDiv.remove();
+                    });
+            }
+
+            async function renderUsers() {
+                const usersContainer =
+                    document.getElementById("usersContainer");
+                if (!usersContainer) return;
+
+                try {
+                    const response = await fetch("https://backendpop-ku78.onrender.com/users");
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch users");
+                    }
+                    const users = await response.json();
+                    if (users.length === 0) {
+                        usersContainer.innerHTML = `
+                            <div class="no-users-container">
+                                <i class="fas fa-users-slash fa-5x"></i>
+                                <p class="no-users-message">No hay usuarios disponibles.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    users.forEach((user: User) => {
+                        const userCard = document.createElement("div");
+                        userCard.classList.add("col-md-4", "mb-3");
+                        userCard.innerHTML = `
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">${user.name}</h5>
+                                    <button class="btn btn-danger btn-sm delete-user-button" data-user-id="${user._id}">Eliminar usuario</button>
+                                </div>
+                            </div>
+                        `;
+                        usersContainer.appendChild(userCard);
+                    });
+
+                    const deleteButtons = document.querySelectorAll(
+                        ".delete-user-button",
+                    );
+                    deleteButtons.forEach((button) => {
+                        button.addEventListener("click", async () => {
+                            const userId = button.getAttribute("data-user-id");
+                            const confirmDelete = confirm(
+                                "¿Seguro que deseas eliminar este usuario?",
+                            );
+
+                            if (confirmDelete) {
+                                try {
+                                    const token = localStorage.getItem("token");
+                                    if (!token) {
+                                        console.error(
+                                            "No se encontró el token en el almacenamiento local.",
+                                        );
+                                        return;
+                                    }
+
+                                    const deleteResponse = await fetch(
+                                        `https://backendpop-ku78.onrender.com/users/${userId}`,
+                                        {
+                                            method: "DELETE",
+                                            headers: {
+                                                "Content-Type":
+                                                    "application/json",
+                                                Authorization: `Bearer ${token}`,
+                                            },
+                                        },
+                                    );
+
+                                    if (deleteResponse.ok) {
+                                        showAlert(
+                                            "success",
+                                            "Usuario borrado con exito.",
+                                            () => {
+                                                location.reload();
+                                            },
+                                            () => {
+                                            },
+                                        );
+
+                                        setTimeout(() => {
+                                            location.reload();
+                                        }, 2000);
+                                    } else {
+                                        const errorMessage =
+                                            await deleteResponse.text();
+                                        console.error(
+                                            "Error al eliminar el usuario:",
+                                            errorMessage,
+                                        );
+                                        alert(
+                                            "Error al eliminar el usuario. Por favor, inténtalo de nuevo más tarde.",
+                                        );
+                                    }
+                                } catch (error) {
+                                    console.error(
+                                        "Error al intentar eliminar el usuario:",
+                                        error,
+                                    );
+                                    alert(
+                                        "Error al eliminar el usuario. Por favor, inténtalo de nuevo más tarde.",
+                                    );
+                                }
+                            }
+                        });
+                    });
+                } catch (error) {
+                    console.error("Error fetching users:", error);
+                    alert(
+                        "Error al obtener la lista de usuarios. Por favor, inténtalo de nuevo más tarde.",
+                    );
+                }
+            }
+
+            window.addEventListener("DOMContentLoaded", renderUsers);
+        </script>
+    </body>
+</html>

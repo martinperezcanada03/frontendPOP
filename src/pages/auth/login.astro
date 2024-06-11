@@ -1,0 +1,41 @@
+---
+import "/src/styles/auth/login.css";
+---
+
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <title>FernanPOP</title>
+  </head>
+  <body>
+    <div id="loadingSpinner" class="spinner"></div>
+
+    <div class="modal-content" style="width: 31%;">
+      <span class="close"></span>
+      <div class="wrapper">
+        <div class="title">Iniciar sesión</div>
+        <form id="loginForm">
+          <div class="field">
+            <input type="email" id="email" required />
+            <label>Email</label>
+          </div>
+          <div class="field">
+            <input type="password" id="password" required />
+            <label>Contraseña</label>
+          </div>
+         
+          <div class="field">
+            <input type="submit" value="Login" />
+          </div>
+          <div class="signup-link">
+            ¿No tienes una cuenta creada? <a href="/auth/register">Registrate aquí</a
+            >
+          </div>
+        </form>
+      </div>
+    </div>
+    <script src="/src/scripts/login.js"></script>
+  </body>
+</html>
+

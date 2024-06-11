@@ -1,0 +1,77 @@
+---
+import Footer from "../../components/Footer.astro";
+import Navbar from "../../components/navbar.astro";
+import Sidebar from "../../components/sidebar.astro";
+
+import "../../styles/sidebar/configuracion.css";
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+        rel="stylesheet"
+        href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
+    />
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Configuración del Usuario</title>
+</head>
+<body>
+    <div class="container-navbar">
+        <Navbar />
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <Sidebar />
+        </div>
+        <div class="col-md-9">
+            <div class="container mt-5">
+                <h2>Información pública:</h2>
+                <form id="configForm" class="config-form">
+                    <div class="form-group">
+                        <label for="name">Nombre:</label>
+                        <input type="text" id="name" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="surname">Apellidos:</label>
+                        <input type="text" id="surname" class="form-control">
+                    </div>
+                </form>
+                <h2>Cuenta:</h2>
+                <form id="accountForm" class="config-form">
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" class="form-control">
+                    </div>
+                </form>
+                <h2>Contraseña:</h2>
+                <form id="passwordForm" class="config-form">
+                    <div class="form-group">
+                        <label for="currentPassword">Contraseña actual:</label>
+                        <input type="password" id="currentPassword" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Contraseña nueva:</label>
+                        <input type="password" id="newPassword" class="form-control" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmNewPassword">Repetir contraseña nueva:</label>
+                        <input type="password" id="confirmNewPassword" class="form-control" disabled>
+                    </div>
+                </form>
+                <button id="saveChangesButton" type="submit" form="configForm" class="btn btn-success">Guardar Cambios</button>
+                <button id="deleteAccountButton" class="btn btn-danger">Eliminar Cuenta</button>
+
+            </div>
+        </div>
+    </div>
+</body>
+<script src="/src/scripts/configuracion.js"></script>
+</html>

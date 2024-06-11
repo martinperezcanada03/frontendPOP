@@ -1,0 +1,52 @@
+---
+import "/src/styles/auth/register.css";
+---
+
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>FernanPOP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="title">Registrarse</div>
+      <div class="content">
+        <form id="registerForm">
+          <div class="user-details">
+            <div class="input-box">
+              <span class="details">Nombre</span>
+              <input type="text" id="name" placeholder="Introduce tu nombre" required />
+            </div>
+            <div class="input-box">
+              <span class="details">Apellidos</span>
+              <input type="text" id="lastName" placeholder="Introduce tus apellidos" required />
+            </div>
+            <div class="input-box">
+              <span class="details">Email</span>
+              <input type="email" id="email" placeholder="Introduce tu email" required />
+            </div>
+            <div class="input-box">
+              <span class="details">Contraseña</span>
+              <input type="password" id="password" placeholder="Introduce tu contraseña" required />
+            </div>
+            <div class="input-box">
+              <span class="details">Confirmar contraseña</span>
+              <input type="password" id="confirmarpassword" placeholder="Confirma la contraseña" required />
+            </div>
+          </div>
+
+          <div class="signup-link">
+            ¿Tienes una cuenta creada? <a href="/auth/login">Inicia sesión aquí</a>
+          </div>
+          
+          <div class="button">
+            <input type="submit" value="Registrarse" />
+          </div>
+        </form>
+      </div>
+    </div>
+    <script src="/src/scripts/register.js"></script>
+  </body>    
+</html>

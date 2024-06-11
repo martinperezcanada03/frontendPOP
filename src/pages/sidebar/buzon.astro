@@ -1,0 +1,158 @@
+---
+import Footer from "../../components/Footer.astro";
+import Navbar from "../../components/navbar.astro";
+import Sidebar from "../../components/sidebar.astro";
+
+import "../../styles/sidebar/buzon.css";
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Buzon</title>
+        <link
+            rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        />
+    </head>
+    <body>
+        <header>
+            <div class="container-navbar">
+                <Navbar />
+            </div>
+        </header>
+        <div class="container">
+            <h1>Buzon</h1>
+            <div class="row" id="conversationsContainer"></div>
+        </div>
+        <footer>
+            <Sidebar />
+        </footer>
+
+        <script>
+            async function fetchConversations() {
+    const userId = localStorage.getItem("userId");
+    console.log("userId:", userId);
+
+    const conversationsResponse = await fetch(
+        `https://backendpop-ku78.onrender.com/users/${userId}/conversations`,
+    );
+    const conversationCount = await conversationsResponse.text();
+    console.log("Conversation Count:", conversationCount);
+
+    const conversationsContainer = document.getElementById(
+        "conversationsContainer",
+    );
+
+    const count = parseInt(conversationCount);
+    if (isNaN(count) || count === 0) {
+        displayNoConversationsMessage();
+        return;
+    }
+
+    for (let i = 0; i < count; i++) {
+        console.log(
+            "Fetching conversation details for conversation index:",
+            i,
+        );
+
+        const userResponse = await fetch(
+            `https://backendpop-ku78.onrender.com/users/${userId}/conversations/${i}`,
+        );
+        const { conversationId } = await userResponse.json();
+        const productId = conversationId.productId;
+
+        console.log(
+            "Fetching product details for productId:",
+            productId,
+        );
+
+        const productResponse = await fetch(
+            `https://backendpop-ku78.onrender.com/products/${productId}`,
+        );
+        const product = await productResponse.json();
+        console.log("Product details:", product);
+
+        const productOwnerId = product.userId;
+        const productName = product.nombre;
+
+        console.log("Product ownerId:", productOwnerId);
+        console.log("Product name:", productName);
+
+       
+        if (product.status === "finalizada") {
+            continue; 
+        }
+
+        const productDisplayName = productName
+            ? productName
+            : "Nombre no disponible";
+
+        const userDetailsResponse = await fetch(
+            `https://backendpop-ku78.onrender.com/users/${productOwnerId}`,
+        );
+        const { name: userName } = await userDetailsResponse.json();
+        console.log("User details:", userName);
+
+        const userCard = document.createElement("div");
+        userCard.classList.add("card", "mb-3");
+        userCard.innerHTML = `
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user"></i> ${userName}
+                    <span class="float-right">
+                        <i class="fas fa-box"></i> ${productDisplayName}
+                    </span>
+                </h5>
+            </div>
+        `;
+
+        userCard.addEventListener("click", () =>
+            redirectToChat(
+                productOwnerId || "",
+                productId,
+                userId || "",
+                conversationId.userId,
+            ),
+        );
+
+        conversationsContainer!.appendChild(userCard);
+    }
+}
+
+            
+
+            function redirectToChat(
+                productOwnerId: string,
+                productId: string,
+                userId: string,
+                conversationUserId: string,
+            ) {
+                const chatType =
+                    userId === productOwnerId ? "owner" : "participant";
+                const recipientId =
+                    chatType === "owner" ? conversationUserId : productOwnerId;
+                const href = `/chat?senderId=${userId}&recipientId=${recipientId}&productId=${productId}&chatType=${chatType}&usuarioIniciadorId=${conversationUserId}`;
+                window.location.href = href;
+            }
+
+            function displayNoConversationsMessage() {
+                const conversationsContainer = document.getElementById(
+                    "conversationsContainer",
+                );
+                if (conversationsContainer) {
+                    conversationsContainer.innerHTML = `
+                    <div class="no-conversations-container">
+                        <i class="fas fa-comment-slash fa-5x"></i>
+                        <p class="no-conversations-message">No hay conversaciones disponibles.</p>
+                    </div>
+                `;
+                }
+            }
+
+            window.addEventListener("load", fetchConversations);
+        </script>
+    </body>
+</html>

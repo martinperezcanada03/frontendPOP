@@ -1,0 +1,104 @@
+---
+import Footer from "../../components/Footer.astro";
+import Navbar from "../../components/navbar.astro";
+import Sidebar from "../../components/sidebar.astro";
+
+import "../../styles/productos/vender.css";
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>FernanPOP</title>
+    </head>
+    <body>
+        <div class="container-navbar">
+            <Navbar />
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <Sidebar />
+            </div>
+            <div class="container">
+                <h3>Sube tu producto</h3>
+                <form id="productForm">
+                    <div id="section1">
+                        <h4>¿Qué subirás?</h4>
+                        <div class="form-group">
+                            <label for="nombre">Nombre</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="nombre"
+                                required
+                            />
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" id="button1">Continuar</button
+                            >
+                        </div>
+                    </div>
+                    <div id="section2" style="display: none;">
+                        <h4>Información del Producto</h4>
+                        <div class="form-group">
+                            <label for="descripcion">Descripción</label>
+                            <textarea
+                                class="form-control"
+                                id="descripcion"
+                                required></textarea>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" id="button2">Continuar</button
+                            >
+                        </div>
+                    </div>
+                    <div id="section3" style="display: none;">
+                        <h4>Coste del Producto</h4>
+                        <div class="form-group">
+                            <label for="precio">Precio</label>
+                            <input
+                                type="number"
+                                class="form-control"
+                                id="precio"
+                                required
+                            />
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" id="button3">Continuar</button
+                            >
+                        </div>
+                    </div>
+                    <div id="section4" style="display: none;">
+                        <h4>Subir Imagen</h4>
+                        <div class="form-group">
+                            <label for="imagen">URL de la Imagen</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="imagen"
+                                required
+                            />
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" id="button4">Continuar</button
+                            >
+                        </div>
+                    </div>
+                    <div id="section5" style="display: none;">
+                        <button
+                            type="submit"
+                            class="btn btn-success"
+                            id="publicarBtn"
+                            disabled>Publicar</button
+                        >
+                    </div>
+                </form>
+            </div>
+            <Footer />
+            <script src="/src/scripts/sections.js"></script>
+            <script src="/src/scripts/productForm.js"></script>
+        </div>
+    </body>
+</html>

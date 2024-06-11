@@ -1,0 +1,134 @@
+---
+import Footer from "../../components/Footer.astro";
+import Navbar from "../../components/navbar.astro";
+import Sidebar from "../../components/sidebar.astro";
+
+import "../../styles/productos/profile.css";
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Buzon</title>
+        <link
+            rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        />
+    </head>
+    <body>
+        <div class="container-navbar">
+            <Navbar />
+        </div>
+        <div class="container-fluid">
+            <div class="row">
+                <Sidebar />
+            </div>
+            <div id="profile-container">
+                <div id="user-info"></div>
+                <h2>Productos del Usuario</h2>
+                <div id="user-products" class="row"></div>
+            </div>
+        </div>
+    </body>
+
+    <script>
+        import type { Product } from "../../interfaces/product";
+        document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('userId');
+
+      if (userId) {
+        try {
+          const userResponse = await fetch(`https://backendpop-ku78.onrender.com/users/${userId}`);
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            const userInfoElement = document.getElementById('user-info');
+            if (userInfoElement) {
+                userInfoElement.innerHTML = `Propietario: <strong>${userData.name.toUpperCase()}</strong>`;
+            }
+          } else {
+            console.error('Error al obtener la información del usuario');
+          }
+
+          const productsResponse = await fetch(`https://backendpop-ku78.onrender.com/products/${userId}/productos`);
+          if (productsResponse.ok) {
+            const productsData = await productsResponse.json();
+            const userProductsContainer = document.getElementById('user-products');
+
+            if (userProductsContainer) {
+              productsData.forEach((product: Product) => {
+                const productCard = createProductCard(product);
+                userProductsContainer.appendChild(productCard);
+              });
+            }
+          } else {
+            console.error('Error al obtener los productos del usuario');
+          }
+        } catch (error) {
+          console.error('Hubo un error al cargar los datos del usuario:', error);
+        }
+      }
+    });
+
+    function createProductCard(product: Product) {
+    const col = document.createElement("div");
+    col.classList.add("col-12", "col-sm-6", "col-md-4", "col-lg-3", "mb-4");
+
+    const link = document.createElement("a");
+    link.href = `/productos/item?id=${product._id}`;
+    link.classList.add("text-decoration-none");
+    link.style.color = "inherit";
+    link.style.display = "block";
+
+    const card = document.createElement("div");
+    card.classList.add("card", "h-100");
+    card.style.border = "none";
+
+    const imgContainer = document.createElement("div");
+    imgContainer.classList.add("rounded-top");
+    imgContainer.style.overflow = "hidden";
+
+    const img = document.createElement("img");
+    img.classList.add("card-img-top");
+    img.alt = product.nombre;
+    img.src = product.imagen || "/src/assets/images/notFound.png"; 
+    img.style.width = "100%";
+    img.style.height = "219px";
+    img.style.objectFit = "cover";
+
+    img.onerror = function() {
+        img.src = "/src/assets/images/notFound.png"; 
+    };
+
+    const cardBody = document.createElement("div");
+    cardBody.classList.add("card-body", "d-flex", "flex-column");
+
+    const cardTitle = document.createElement("h5");
+    cardTitle.classList.add("card-title");
+    cardTitle.textContent = product.nombre;
+
+    const cardFooter = document.createElement("div");
+    cardFooter.classList.add("mt-auto");
+
+    const price = document.createElement("p");
+    price.classList.add("card-text", "font-weight-bold", "xl-text");
+    price.textContent = `${product.precio}€`;
+
+    cardFooter.appendChild(price);
+
+    cardBody.appendChild(cardTitle);
+    cardBody.appendChild(cardFooter);
+
+    imgContainer.appendChild(img);
+    card.appendChild(imgContainer);
+    card.appendChild(cardBody);
+    link.appendChild(card);
+    col.appendChild(link);
+
+    return col;
+}
+
+  </script>
+</html>

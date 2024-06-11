@@ -1,0 +1,52 @@
+body {
+  padding-right: 30%;
+  padding-left: 20%;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+  .col-md-4 {
+    flex: 0 0 auto;
+    width: 20%
+  }
+}
+
+.container-navbar {
+  margin-bottom: 10%;
+}
+
+.container {
+  max-width: 800px;
+}
+
+.config-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.config-form .form-group {
+  margin-bottom: 20px;
+}
+
+.config-form label {
+  display: block;
+  font-weight: bold;
+}
+
+.config-form .form-control {
+  width: 100%;
+}
+
+.config-form button {
+  grid-column: span 2;
+  align-self: center;
+}
+
+#saveChangesButton {
+  width: 70%;
+}

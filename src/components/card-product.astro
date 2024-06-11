@@ -1,0 +1,311 @@
+---
+import "/src/styles/productos/card-product.css";
+import Footer from "./Footer.astro";
+import Navbar from "./navbar.astro";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <div class="container-navbar">
+      <Navbar />
+    </div>
+    <div id="data-container" class="container"></div>
+    <div id="pagination-container" class="container mt-4"></div>
+
+    <script type="module">
+      let currentPage = 1;
+      let pageSize = 12;
+      let totalPages = 0;
+      let paginationList = document.createElement("ul");
+      let searchTerm = localStorage.getItem("searchTerm") || "";
+
+      window.addEventListener("searchTermUpdated", async (event) => {
+        searchTerm = event.detail;
+        await loadProducts(currentPage, searchTerm);
+        await loadTotalPages(searchTerm);
+        renderPagination();
+      });
+
+      function createPageButton(pageNumber) {
+        const pageItem = document.createElement("li");
+        pageItem.classList.add("page-item");
+        if (pageNumber === currentPage) {
+          pageItem.classList.add("active");
+        }
+
+        const pageLink = document.createElement("button");
+        pageLink.classList.add("page-link");
+        pageLink.textContent = pageNumber.toString();
+        pageLink.addEventListener("click", () => {
+          currentPage = pageNumber;
+          loadProducts(currentPage, searchTerm);
+          renderPagination();
+        });
+
+        pageItem.appendChild(pageLink);
+        return pageItem;
+      }
+
+      async function getAllProducts(page, searchTerm = "") {
+        try {
+          let url;
+          if (searchTerm) {
+            url = new URL(`https://backendpop-ku78.onrender.com/products/search`);
+            url.searchParams.append("q", searchTerm);
+          } else {
+            url = new URL(`https://backendpop-ku78.onrender.com/products`);
+          }
+          url.searchParams.append("page", page);
+          url.searchParams.append("pageSize", pageSize);
+
+          const response = await fetch(url.toString());
+
+          if (!response.ok) {
+            throw new Error("Error al obtener los datos del servidor");
+          }
+          return response.json();
+        } catch (error) {
+          throw error;
+        }
+      }
+
+      async function getAllProductsCount(searchTerm = "") {
+        try {
+          let url = new URL(`https://backendpop-ku78.onrender.com/products/count`);
+          if (searchTerm) {
+            url = new URL(`https://backendpop-ku78.onrender.com/products/search/count`);
+            url.searchParams.append("q", searchTerm);
+          }
+          const response = await fetch(url.toString());
+          if (!response.ok) {
+            throw new Error("Error al obtener el número total de productos");
+          }
+          const data = await response.json();
+          return data.count;
+        } catch (error) {
+          console.error(
+            "Error al obtener el número total de productos:",
+            error,
+          );
+          throw error;
+        }
+      }
+
+      async function loadProducts(page, searchTerm = "") {
+        try {
+          const response = await getAllProducts(page, searchTerm);
+          const data = response.data;
+
+          const dataContainer = document.getElementById("data-container");
+          if (dataContainer) {
+            dataContainer.innerHTML = "";
+
+            const row = document.createElement("div");
+            row.classList.add("row");
+            dataContainer.appendChild(row);
+
+            if (Array.isArray(data)) {
+              const startIndex = (page - 1) * pageSize;
+              const endIndex = Math.min(startIndex + pageSize, data.length);
+
+              for (let i = startIndex; i < endIndex; i++) {
+                const productData = data[i];
+                const product = {
+                  _id: productData._id,
+                  nombre: productData.nombre,
+                  precio: productData.precio,
+                  imagen: productData.imagen,
+                  status: productData.status,
+                  userId: productData.userId,
+                };
+                const card = createProductCard(product);
+                row.appendChild(card);
+              }
+            } else {
+              console.error(
+                "La estructura de los datos no es la esperada:",
+                data,
+              );
+            }
+          } else {
+            console.error("No se encontró el contenedor de datos en el DOM");
+          }
+        } catch (error) {
+          console.error(
+            "Hubo un error al obtener los datos del servidor:",
+            error,
+          );
+        }
+      }
+
+      async function loadTotalPages(searchTerm = "") {
+        try {
+          const count = await getAllProductsCount(searchTerm);
+          totalPages = Math.ceil(count / pageSize);
+          renderPagination();
+        } catch (error) {
+          console.error("Error al cargar el número total de páginas:", error);
+        }
+      }
+
+      function renderPagination() {
+        paginationList.innerHTML = "";
+        paginationList.classList.add("pagination");
+
+        for (let i = 1; i <= totalPages; i++) {
+          paginationList.appendChild(createPageButton(i));
+        }
+
+        const paginationContainer = document.getElementById(
+          "pagination-container",
+        );
+        paginationContainer.innerHTML = "";
+        paginationContainer.setAttribute("aria-label", "Page navigation");
+        paginationContainer.appendChild(paginationList);
+      }
+      
+      function createProductCard(product) {
+    const col = document.createElement("div");
+    col.classList.add("col-12", "col-sm-6", "col-md-4", "col-lg-3", "mb-4");
+
+    const link = document.createElement("a");
+    link.href = `/productos/item?id=${product._id}`;
+    link.classList.add("text-decoration-none");
+    link.style.color = "inherit";
+    link.style.display = "block";
+
+    const card = document.createElement("div");
+    card.classList.add("card", "h-100");
+    card.style.border = "none";
+
+    const imgContainer = document.createElement("div");
+    imgContainer.classList.add("rounded-top");
+    imgContainer.style.overflow = "hidden";
+
+    const img = document.createElement("img");
+    img.classList.add("card-img-top");
+    img.alt = product.nombre;
+    img.src = product.imagen || "src/assets/images/notFound.png";
+    img.style.width = "100%";
+    img.style.height = "219px";
+    img.style.objectFit = "cover";
+    img.onerror = () => {
+        img.src = "src/assets/images/notFound.png";
+    };
+
+    const cardBody = document.createElement("div");
+    cardBody.classList.add("card-body", "d-flex", "flex-column");
+
+    const cardTitle = document.createElement("h5");
+    cardTitle.classList.add("card-title");
+    cardTitle.textContent = product.nombre;
+
+    const cardFooter = document.createElement("div");
+    cardFooter.classList.add("mt-auto");
+
+    const price = document.createElement("p");
+    price.classList.add("card-text", "font-weight-bold", "xl-text");
+    price.textContent = `${product.precio}€`;
+
+    cardFooter.appendChild(price);
+
+    if (product.status === 'proceso') {
+        const reservedIcon = document.createElement("i");
+        reservedIcon.classList.add("fas", "fa-tag", "text-purple", "ml-2");
+        reservedIcon.setAttribute("title", "Reservado");
+
+        const reservedText = document.createElement("span");
+        reservedText.textContent = "RESERVADO";
+
+        const priceContainer = document.createElement("div");
+        priceContainer.classList.add("price-container");
+        priceContainer.appendChild(reservedIcon);
+        priceContainer.appendChild(reservedText);
+
+        cardFooter.appendChild(priceContainer);
+    }
+
+    if (product.status === 'finalizada') {
+        const reservedIcon = document.createElement("i");
+        reservedIcon.classList.add("fas", "fa-check", "text-purple", "ml-2");
+        reservedIcon.setAttribute("title", "Finalizada");
+
+        const reservedText = document.createElement("span");
+        reservedText.textContent = "VENDIDO";
+
+        const priceContainer = document.createElement("div");
+        priceContainer.classList.add("price-container");
+        priceContainer.appendChild(reservedIcon);
+        priceContainer.appendChild(reservedText);
+
+        cardFooter.appendChild(priceContainer);
+    }
+
+    cardBody.appendChild(cardTitle);
+    cardBody.appendChild(cardFooter);
+
+    imgContainer.appendChild(img);
+    card.appendChild(imgContainer);
+    card.appendChild(cardBody);
+    link.appendChild(card);
+    col.appendChild(link);
+
+    return col;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Verificar si hay un currentUser en el localStorage
+    const currentUser = localStorage.getItem("currentUser");
+    if (currentUser) {
+        console.log("Se ha detectado un usuario actual en el localStorage:", currentUser);
+    } else {
+        console.log("No se ha detectado ningún usuario actual en el localStorage.");
+    }
+
+    const searchBoxInput = document.getElementById("searchbox-form-input");
+
+    searchBoxInput.addEventListener("keydown", async (keyEvent) => {
+        if (keyEvent.key === "Enter") {
+            keyEvent.preventDefault();
+            const searchTerm = searchBoxInput.value.trim();
+            localStorage.setItem("searchTerm", searchTerm);
+            const searchTermEvent = new CustomEvent("searchTermUpdated", {
+                detail: searchTerm,
+            });
+            window.dispatchEvent(searchTermEvent);
+
+            try {
+                const count = await getAllProductsCount(searchTerm);
+            } catch (error) {}
+        }
+    });
+
+    window.addEventListener("searchTermUpdated", async (event) => {
+        const searchTerm = event.detail;
+        await loadProducts(currentPage, searchTerm);
+        await loadTotalPages(searchTerm);
+        renderPagination();
+    });
+
+    loadProducts(currentPage, searchTerm);
+    loadTotalPages(searchTerm);
+});
+
+    </script>
+  </body>
+</html>

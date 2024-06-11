@@ -1,0 +1,88 @@
+---
+import "/src/styles/components/sidebar.css";
+---
+
+<aside class="sidebar" style="width: 200px;">
+    <ul>
+        <li><a href="../sidebar/productos">Productos</a></li>
+        <li><a href="../sidebar/buzon">Buzón</a></li>
+        <li><a href="../sidebar/favoritos">Favoritos</a></li>
+        <li><a href="../sidebar/configuracion">Configuración</a></li>
+        <!-- Agregar la opción de Usuarios solo si el usuario es un administrador -->
+        <li id="usersOption" style="display: none;"><a href="../sidebar/usuarios">Usuarios</a></li>
+    </ul>
+    <div class="logout">
+        <a href="#" id="logoutButton">Cerrar Sesión</a>
+    </div>
+</aside>
+
+<script>
+    function showAlert(type: string, message: string, confirmCallback: () => void, cancelCallback: () => void) {
+        const alertDiv = document.createElement('div');
+        alertDiv.classList.add('alert', `alert-${type}`, 'mt-3', 'position-fixed', 'start-50', 'translate-middle-x');
+        alertDiv.style.top = '50%';
+        alertDiv.style.left = '50%';
+        alertDiv.style.transform = 'translate(-50%, -50%)';
+        alertDiv.style.zIndex = '1050'; 
+        alertDiv.innerHTML = `
+            <p>${message}</p>
+            <button id="confirmButton" class="btn btn-danger">Sí</button>
+            <button id="cancelButton" class="btn btn-secondary">No</button>
+        `;
+        document.body.prepend(alertDiv);
+
+        document.getElementById("confirmButton")?.addEventListener("click", () => {
+            confirmCallback();
+            alertDiv.remove();
+        });
+
+        document.getElementById("cancelButton")?.addEventListener("click", () => {
+            cancelCallback();
+            alertDiv.remove();
+        });
+    }
+
+    function showSuccessAlert(message: string) {
+        const alertDiv = document.createElement('div');
+        alertDiv.classList.add('alert', 'alert-success', 'mt-3', 'position-fixed', 'start-50', 'translate-middle-x');
+        alertDiv.style.top = '50%';
+        alertDiv.style.left = '50%';
+        alertDiv.style.transform = 'translate(-50%, -50%)';
+        alertDiv.style.zIndex = '1050'; 
+        alertDiv.textContent = message;
+        document.body.prepend(alertDiv);
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 2000);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const logoutButton = document.getElementById("logoutButton");
+        if (logoutButton) {
+            logoutButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                showAlert('warning', '¿Está seguro que quiere cerrar sesión?', () => {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("userId");
+                    localStorage.removeItem("userName");
+                    localStorage.removeItem("currentUser");
+                    localStorage.removeItem("userLastName");
+                    showSuccessAlert('Sesión cerrada exitosamente');
+                    setTimeout(() => {
+                        window.location.href = "/auth/login";
+                    }, 2000); 
+                }, () => {
+                    console.log('Cierre de sesión cancelado');
+                });
+            });
+        }
+
+        const currentUser = localStorage.getItem("userName");
+        if (currentUser === "admin") {
+            const usersOption = document.getElementById("usersOption");
+            if (usersOption) {
+                usersOption.style.display = "block";
+            }
+        }
+    });
+</script>

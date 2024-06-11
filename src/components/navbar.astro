@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="/src/styles/components/navbar.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top border-bottom border-top shadow custom-navbar">
+        <div class="container">
+            <div class="logo text-center">
+                <a id="logoLink" href="/">
+                    <img src="/src/assets/images/logo.png" alt="Logo" style="width: 150px; height: auto; object-fit: contain;" />
+                </a>
+            </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="searchbox">
+                    <form name="searchbox" class="d-flex align-items-center">
+                        <div class="searchbox-icon mr-2"></div>
+                        <input id="searchbox-form-input" type="search" class="form-control" placeholder="Buscar..." autocomplete="off" />
+                    </form>
+                </div>
+                <div id="userContainer" class="ms-auto">
+                    <a class="btn btn-outline-success" id="loginButton" href="../auth/login" role="button">
+                        <i class="fas fa-user"></i> Entrar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const userContainer = document.getElementById("userContainer");
+            const loginButton = document.getElementById("loginButton") as HTMLAnchorElement;
+            const searchBoxInput = document.getElementById("searchbox-form-input") as HTMLInputElement;
+
+            const logoLink = document.getElementById("logoLink");
+            logoLink!.addEventListener("click", () => {
+                localStorage.removeItem("searchTerm");
+            });
+
+            searchBoxInput.addEventListener("keypress", (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    const searchTerm = searchBoxInput.value.trim();
+                    localStorage.setItem("searchTerm", searchTerm);
+                    const searchEvent = new CustomEvent("searchTermUpdated", {
+                        detail: searchTerm,
+                    });
+                    window.dispatchEvent(searchEvent);
+                }
+            });
+
+            const currentUser = localStorage.getItem("userName");
+
+            if (loginButton && currentUser) {
+                const nameUser = currentUser.trim();
+
+                loginButton.textContent = nameUser;
+                loginButton.href = "/sidebar/productos";
+
+                const iconFavorito = document.createElement("i");
+                iconFavorito.classList.add("far", "fa-heart");
+
+                const iconBuzon = document.createElement("i");
+                iconBuzon.classList.add("far", "fa-envelope");
+
+                const favoritesLink = document.createElement("a");
+                favoritesLink.classList.add("btn", "text-dark", "mr-3");
+                favoritesLink.href = "/sidebar/favoritos";
+                favoritesLink.appendChild(iconFavorito);
+
+                const cartLink = document.createElement("a");
+                cartLink.classList.add("btn", "text-dark", "mr-3");
+                cartLink.href = "/sidebar/buzon";
+                cartLink.appendChild(iconBuzon);
+
+                const sellLink = document.createElement("a");
+                sellLink.classList.add("btn", "btn-outline-secondary");
+                sellLink.href = "/productos/vender";
+                sellLink.textContent = "Vender";
+
+                userContainer!.appendChild(favoritesLink);
+                userContainer!.appendChild(cartLink);
+                userContainer!.appendChild(sellLink);
+            }
+        });
+    </script>
+</body>
+</html>
